@@ -1,10 +1,14 @@
 vim-hsftp
 =========
 
-Vim: Upload and download files through sftp
+Vim: Upload and download files through scp with passwordless public key
 
 Usage:
 ------
+First, you have to create ssh public key and copy the id to remote computer.
+    ssh-keygen -t rsa -b 4096, LEAVE THE PASSWORD BLANK. JUST KLIK ENTER
+    ssh-copy-id user@host
+    
 First you have to create a config file called .hsftp in your project directory.
 
 When uploading/downloading hsftp searches backwards for a config file so if the edited file is e.g. `/test/dir/file.txt` and the config file is `/test/.hsftp` it will upload/download as `dir/file.txt`
