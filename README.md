@@ -18,11 +18,12 @@ The config file should be structured like this (amount of spaces doesn't matter)
 
     host   1.1.1.1
     user   username
-    pass   test123
     port   22
     remote /var/www/
     confirm_download 0
     confirm_upload 0
+    confirm_updir 0
+    confirm_dwdir 0
 
 ### Commands
     :Hdownload
@@ -34,13 +35,18 @@ Uploads current file to remote path
     :Hupdir
 Uploads current folder of current buffer to remote path
 
+    :Hdwdir
+Downlods current folder of current buffer from remote path
 
 ### Mappings
-    <leader>hsd
+    <leader>hdw
 Calls :Hdownload
 
-    <leader>hsu
+    <leader>hul
 Calls :Hupload
 
-    <leader>hsf
+    <leader>hud
 Calls :Hupdir
+
+    <leader>hdd
+Calls :Hdwdir
