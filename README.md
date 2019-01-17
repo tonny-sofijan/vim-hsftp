@@ -6,6 +6,7 @@ Vim: Upload and download files through scp with passwordless public key
 Usage:
 ------
 First, you have to create ssh public key and copy the id to remote computer.
+
     ssh-keygen -t rsa -b 4096, LEAVE THE PASSWORD BLANK. JUST KLIK ENTER
     ssh-copy-id user@host
     
