@@ -8,6 +8,12 @@
 " Github: https://github.com/hesselbom/vim-hsftp
 " Author: Viktor Hesselbom (hesselbom.net)
 " License: MIT
+"
+" Before you use this, you must use passwordless ssh public key
+" command:
+"   ssh-keygen -t rsa -b 4096 // DO NOT USE PASSWORD, LEFT IT BLANK
+"   ssh-copy-id user@host 
+
 
 function! H_GetConf()
   let conf = {}
@@ -57,9 +63,7 @@ function! H_DownloadFile()
   let conf = H_GetConf()
 
   if has_key(conf, 'host')
-    let action = printf('get %s %s', conf['remotepath'], conf['localpath'])
-    let cmd = printf('expect -c "set timeout 5; spawn sftp -P %s %s@%s; expect \"*assword:\"; send %s\r; expect \"sftp>\"; send \"%s\r\"; expect -re \"100%\"; send \"exit\r\";"', conf['port'], conf['user'], conf['host'], conf['pass'], action)
-
+    let cmd = printf('scp -P %s %s@%s:%s %s', conf['port'], conf['user'], conf['host'], conf['remotepath'], conf['localpath'])
 
     if conf['confirm_download'] == 1
       let choice = confirm('Download file?', "&Yes\n&No", 2)
@@ -79,8 +83,7 @@ function! H_UploadFile()
   let conf = H_GetConf()
 
   if has_key(conf, 'host')
-    let action = printf('put %s %s', conf['localpath'], conf['remotepath'])
-    let cmd = printf('expect -c "set timeout 5; spawn sftp -P %s %s@%s; expect \"*assword:\"; send %s\r; expect \"sftp>\"; send \"%s\r\"; expect -re \"100%\"; send \"exit\r\";"', conf['port'], conf['user'], conf['host'], conf['pass'], action)
+    let cmd = printf('scp -P %s %s %s@%s:%s', conf['port'], conf['localpath'], conf['user'], conf['host'], conf['remotepath'])
 
     if conf['confirm_upload'] == 1
       let choice = confirm('Upload file?', "&Yes\n&No", 2)
@@ -99,27 +102,20 @@ endfunction
 function! H_UploadFolder()
   let conf = H_GetConf()
 
-  " execute "! echo " . file
-  " let conf['localpath'] = expand('%:p')
-  let action = "send pwd\r;"
   if has_key(conf, 'host')
-    for file in split(glob('%:p:h/*'), '\n')
-      let conf['localpath'] = file
-      let conf['remotepath'] = conf['remote'] . conf['localpath'][strlen(conf['local']):]
-  
-      if conf['confirm_upload'] == 1
-        let choice = confirm('Upload file?', "&Yes\n&No", 2)
-        if choice != 1
-          echo 'Canceled.'
-          return
-        endif
+    let conf['localpath'] = expand('%:p:h')
+    let conf['remotepath'] = conf['remote'] . conf['localpath'][strlen(conf['local']):]
+    let cmd = printf('scp -r -P %s %s %s@%s:%s', conf['port'], conf['localpath'], conf['user'], conf['host'], conf['remotepath'])
+
+    if conf['confirm_updir'] == 1
+      let choice = confirm('Upload file?', "&Yes\n&No", 2)
+      if choice != 1
+        echo 'Canceled.'
+        return
       endif
-      let action = action . printf('expect \"sftp>\"; send \"put %s %s\r\";', conf['localpath'], conf['remotepath'])
-    endfor
-    " let cmd = printf('expect -c "set timeout 5; spawn sftp -P %s %s@%s; expect \"*assword:\"; send %s\r; expect \"sftp>\"; send \"%s\r\"; expect -re \"100%\"; send \"exit\r\";"', conf['port'], conf['user'], conf['host'], conf['pass'], action)
+    endif
 
-    let cmd = printf('expect -c "set timeout 5; spawn sftp -P %s %s@%s; expect \"*assword:\"; send %s\r; %s expect -re \"100%\"; send \"exit\r\";"', conf['port'], conf['user'], conf['host'], conf['pass'], action)
-
+    echo cmd
     execute '!' . cmd
   else
     echo 'Could not find .hsftp config file'
