@@ -9,7 +9,7 @@
 " Author: Viktor Hesselbom (hesselbom.net)
 " License: MIT
 "
-" Before you use this, you must use passwordless ssh public key
+" Before you use this, you must use passwordless ssh with public key
 " command:
 "   ssh-keygen -t rsa -b 4096 // DO NOT USE PASSWORD, LEFT IT BLANK
 "   ssh-copy-id user@host 
@@ -93,7 +93,7 @@ function! H_UploadFile()
       endif
     endif
 
-    execute '!' . cmd
+    execute '!' . cmd 
   else
     echo 'Could not find .hsftp config file'
   endif
@@ -115,18 +115,41 @@ function! H_UploadFolder()
       endif
     endif
 
+    execute '!' . cmd . "\r\n<cr>"
+  else
+    echo 'Could not find .hsftp config file'
+  endif
+endfunction
+
+function! H_DownloadFolder()
+  let conf = H_GetConf()
+
+  if has_key(conf, 'host')
+    let conf['localpath'] = expand('%:p:h')
+    let conf['remotepath'] = conf['remote'] . conf['localpath'][strlen(conf['local']):]
+    let cmd = printf('scp -r -P %s %s %s@%s:%s', conf['port'], conf['user'], conf['host'], conf['remotepath'], conf['localpath'])
+
+    if conf['confirm_updir'] == 1
+      let choice = confirm('Upload file?', "&Yes\n&No", 2)
+      if choice != 1
+        echo 'Canceled.'
+        return
+      endif
+    endif
+
     echo cmd
     execute '!' . cmd
   else
     echo 'Could not find .hsftp config file'
   endif
-
 endfunction
 
 command! Hdownload call H_DownloadFile()
 command! Hupload call H_UploadFile()
 command! Hupdir  call H_UploadFolder()
+command! Hdldir  call H_DownloadFolder()
 
-nmap <leader>hsd :Hdownload<Esc>
-nmap <leader>hsu :Hupload<Esc>
-nmap <leader>hsf :Hupdir<Esc>
+nmap <leader>hdw :Hdownload<Esc>
+nmap <leader>hul :Hupload<Esc>
+nmap <leader>hud :Hupdir<Esc>
+nmap <leader>hdd :Hdldir<Esc>
